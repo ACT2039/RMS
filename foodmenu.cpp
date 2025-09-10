@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 vector<Fooditem> foodlist;
 vector<vegfooditem> vegfoodlist;
 vector<nonvegfooditem> nonvegfoodlist;
@@ -16,7 +15,7 @@ void Menu::addfooditem(int fid, string fname, int fprice, string fcat) {
     f.fname = fname;
     f.fprice = fprice;
     f.fcat = fcat;
-
+    
     if (fcat == "vg") {
         vegfooditem vf;
         vf.fid = fid;
