@@ -3,7 +3,6 @@
 #include <vector>
 using namespace std;
 
-// ================= FOOD ITEM =================
 class Fooditem {
 public:
     int fid;
@@ -22,7 +21,7 @@ public:
     nonvegfooditem() { fcat = "nvg"; }
 };
 
-// ================= MENU =================
+
 class Menu {
 public:
     void addfooditem(int fid, string fname, int fprice, string fcat);
@@ -110,7 +109,6 @@ void Menu::deletefooditem(int fid) {
     cout << "Food item not found!" << endl;
 }
 
-// ================= CUSTOMER =================
 
 class Customer {
 public:
@@ -166,7 +164,7 @@ void customer_details() {
     c.display_customers();
 }
 
-// ================= MAIN =================
+
 int main() {
     Menu menu;
     int choice;
@@ -261,3 +259,4 @@ int main() {
 
     return 0;
 }
+
