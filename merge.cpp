@@ -29,92 +29,34 @@ public:
 };
 
 class Menu {
+private:
+    vector<Fooditem> foodlist;
 public:
-    void addfooditem(int fid, string fname, int fprice, string fcat);
-    void displayfooditem(int fid, string fname, int fprice, string fcat);
-    void deletefooditem(int fid);
-};
-
-vector<Fooditem> foodlist;
-vector<vegfooditem> vegfoodlist;
-vector<nonvegfooditem> nonvegfoodlist;
-
-void Menu::addfooditem(int fid, string fname, int fprice, string fcat) {
-    Fooditem f;
-    f.fid = fid;
-    f.fname = fname;
-    f.fprice = fprice;
-    f.fcat = fcat;
-
-    if (fcat == "vg") {
-        vegfooditem vf;
-        vf.fid = fid;
-        vf.fname = fname;
-        vf.fprice = fprice;
-        vegfoodlist.push_back(vf);
-    }
-    else if (fcat == "nvg") {
-        nonvegfooditem nvf;
-        nvf.fid = fid;
-        nvf.fname = fname;
-        nvf.fprice = fprice;
-        nonvegfoodlist.push_back(nvf);
-    }
-    else {
-        cout << "Invalid food category!" << endl;
-        return;
-    }
-
-    foodlist.push_back(f);
-    cout << "Food item added successfully!" << endl;
-}
-
-void Menu::displayfooditem(int, string, int, string fcat) {
-    if (fcat == "vg") {
-        cout << "Vegetarian Food Items:" << endl;
-        for (int i = 0; i < vegfoodlist.size(); i++) {
-            cout << "Food id:" << vegfoodlist[i].fid << endl;
-            cout << "Food name:" << vegfoodlist[i].fname << endl;
-            cout << "Food price:" << vegfoodlist[i].fprice << endl;
-            cout << "--------------------------" << endl;
-        }
-    }
-    else if (fcat == "nvg") {
-        cout << "Non-Vegetarian Food Items:" << endl;
-        for (int i = 0; i < nonvegfoodlist.size(); i++) {
-            cout << "Food id:" << nonvegfoodlist[i].fid << endl;
-            cout << "Food name:" << nonvegfoodlist[i].fname << endl;
-            cout << "Food price:" << nonvegfoodlist[i].fprice << endl;
-            cout << "--------------------------" << endl;
-        }
-    }
-    else if (fcat == "all") {
-        cout << "All Food Items:" << endl;
-        for (int i = 0; i < foodlist.size(); i++) {
-            cout << "Food id:" << foodlist[i].fid << endl;
-            cout << "Food name:" << foodlist[i].fname << endl;
-            cout << "Food price:" << foodlist[i].fprice << endl;
-            cout << "Food category:" << foodlist[i].fcat << endl;
-            cout << "--------------------------" << endl;
-        }
-    }
-    else {
-        cout << "Invalid food category!" << endl;
-        return;
-    }
-}
-
-void Menu::deletefooditem(int fid) {
-    for (int i = 0; i < foodlist.size(); i++) {
-        if (foodlist[i].fid == fid) {
-            foodlist.erase(foodlist.begin() + i);
-            cout << "Food item deleted successfully!" << endl;
+    friend class Manager;
+    friend class Customer;
+    void displayfooditem(string fcat = "all") {
+        if (foodlist.empty()) {
+            cout << "No food items available.\n";
             return;
         }
+        cout << "\n=== MENU (" << fcat << ") ===\n";
+        cout << "Id  Food name     Food Price     Food category\n";
+        cout << "------------------------------------------\n";
+        for (auto &f : foodlist) {
+            if (fcat == "all" || f.fcat == fcat) {
+                cout << f.fid << "   " << f.fname << "             " << f.fprice << "              " << f.fcat << endl;
+                cout << "------------------------------------------\n";
+            }
+        }
     }
-    cout << "Food item not found!" << endl;
-}
-
+    void saveToFile() {
+        ofstream ofs("fooditems.txt");
+        for (auto &f : foodlist) {
+            ofs << f.fid << " " << f.fname << " " << f.fprice << " " << f.fcat << endl;
+        }
+        ofs.close();
+    }
+};
 
 class Customer {
 public:
@@ -265,6 +207,7 @@ int main() {
 
     return 0;
 }
+
 
 
 
