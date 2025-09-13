@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <limits>
+#include <set>
 using namespace std;
 
 class Fooditem {
@@ -9,18 +11,22 @@ public:
     string fname;
     int fprice;
     string fcat;
+    Fooditem() {}
+    Fooditem(int id, string name, int price, string cat)
+        : fid(id), fname(name), fprice(price), fcat(cat) {}
 };
 
-class vegfooditem : public Fooditem {
+class VegFooditem : public Fooditem {
 public:
-    vegfooditem() { fcat = "vg"; }
+    VegFooditem(int id, string name, int price)
+        : Fooditem(id, name, price, "vg") {}
 };
 
-class nonvegfooditem : public Fooditem {
+class NonVegFooditem : public Fooditem {
 public:
-    nonvegfooditem() { fcat = "nvg"; }
+    NonVegFooditem(int id, string name, int price)
+        : Fooditem(id, name, price, "nvg") {}
 };
-
 
 class Menu {
 public:
@@ -259,5 +265,6 @@ int main() {
 
     return 0;
 }
+
 
 
