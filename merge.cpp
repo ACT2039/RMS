@@ -250,98 +250,42 @@ public:
 
 int main() {
     Menu menu;
-    int choice;
-    int key;
+    Manager manager(menu);
+    int choice, key;
     do {
-        cout << "1. Manager" << endl;
-        cout << "2. Customer" << endl;
-        cout << "3. Exit" << endl;
-        cout << "Enter your choice: ";
+        cout << "\n1. Manager\n2. Customer\n3. Exit\nEnter your choice: ";
         cin >> key;
-
         if (key == 1) {
             do {
-                cout << "1. Add Food Item" << endl;
-                cout << "2. Display Food Items" << endl;
-                cout << "3. Delete Food Item" << endl;
-                cout << "4. All customers details" << endl;
-                cout << "5. Exit" << endl;
-                cout << "Enter your choice: ";
+                cout << "\n--- Manager Menu ---\n";
+                cout << "1. Add Food Item\n2. Display Food Items\n3. Delete Food Item\n4. Display Bill by Customer ID\n5. Exit\nEnter choice: ";
                 cin >> choice;
-
-                if (choice == 1) {
-                    int fid, fprice;
-                    string fname, fcat;
-                    cout << "Enter food id: ";
-                    cin >> fid;
-                    cout << "Enter food name: ";
-                    cin >> fname;
-                    cout << "Enter food price: ";
-                    cin >> fprice;
-                    cout << "Enter food category (vg/nvg): ";
-                    cin >> fcat;
-                    menu.addfooditem(fid, fname, fprice, fcat);
-                }
-                else if (choice == 2) {
-                    string fcat;
-                    cout << "Enter food category to display (vg/nvg/all): ";
-                    cin >> fcat;
-                    menu.displayfooditem(0, "", 0, fcat);
-                }
-                else if (choice == 3) {
-                    int fid;
-                    cout << "Enter food id to delete: ";
-                    cin >> fid;
-                    menu.deletefooditem(fid);
-                }
-                else if (choice == 4) {
-                    customer_details();
-                }
-                else if (choice == 5) {
-                    cout << "Exiting Manager menu..." << endl;
-                }
-                else {
-                    cout << "Invalid choice! Please try again." << endl;
-                }
+                if (choice == 1) manager.addFood();
+                else if (choice == 2) manager.displayMenu();
+                else if (choice == 3) manager.deleteFood();
+                else if (choice == 4) manager.displayOrders();
+                else if (choice == 5) cout << "Exiting Manager menu...\n";
+                else cout << "Invalid choice!\n";
             } while (choice != 5);
         }
         else if (key == 2) {
-            cout<<"Please enter your details."<<endl;
             Customer c1;
-
-            cout << "1. Dine In" << endl;
-            cout << "2. Take Away" << endl;
-            cout << "3. Home Delivery" << endl;
-            cout << "Enter your choice: ";
-            cin >> choice;
-            if (choice == 1) {
-                cout << "Total how many members ?: ";
-                int members;
-                cin >> members;
-                c1.dineIn(members);
-            }
-            else if (choice == 2) {
-                c1.takeAway();
-            }
-            else if (choice == 3) {
-                c1.homeDelivery();
-            }
-
-            string fcat;
-            cout << "Enter food category to display (vg/nvg/all): ";
-            cin >> fcat;
-            menu.displayfooditem(0, "", 0, fcat);
+            c1.add_details();
+            int members;
+            cout << "Total how many members ?: ";
+            cin >> members;
+            c1.dineIn(members, menu);
         }
         else if (key == 3) {
-            cout << "Exiting program..." << endl;
+            cout << "Exiting program...\n";
         }
         else {
-            cout << "Invalid choice! Please try again." << endl;
+            cout << "Invalid choice!\n";
         }
     } while (key != 3);
-
-    return 0;
+    return 0;
 }
+
 
 
 
