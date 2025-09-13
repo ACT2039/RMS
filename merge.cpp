@@ -58,59 +58,84 @@ public:
     }
 };
 
+vector<Order> Order::orderlist;
 class Customer {
 public:
+    static int nextId;
+    int cid;
     string name;
     string phno;
-    vector<Customer> customerlist;
+    static vector<Customer> customerlist;
     Customer() {
-    cout << "Enter your name: ";
-    cin >> name;
-    cout << "Enter your ph no: ";
-    cin >> phno;
-    customerlist.push_back(*this);
-}
-
-
-    void display_customers();
-    void dineIn(int members);
-    void takeAway();
-    void homeDelivery();
+        cid = ++nextId;
+        cout << "---~ WELCOME ~---\n";
+    }
+    void add_details() {
+        cout << "Please enter your details.\n";
+        cin.ignore();
+        cout << "Enter your name: ";
+        getline(cin, name);
+        while (true) {
+            cout << "Enter your phno.: ";
+            cin >> phno;
+            if (phno.size() == 10) {
+                break;
+            } else {
+                cout << "Invalid phone number. Please try again!\n";
+            }
+        }
+        customerlist.push_back(*this);
+        cout << "Your Customer ID is: " << cid << "\n";
+    }
+    void dineIn(int members, Menu &menu) {
+        cout << "Dine-in booking for " << members << " members confirmed.\n";
+        placeOrder(menu, members);
+    }
+    void placeOrder(Menu &menu, int members) {
+        string fcat;
+        cout << "Enter food category (vg/nvg/all): ";
+        cin >> fcat;
+        menu.displayfooditem(fcat);
+        if (menu.foodlist.empty()) {
+            cout << "No food items. Sorry:(\n";
+            return;
+        }
+        cout << "Choose your food (enter food IDs, -1 to stop): ";
+        vector<int> idlist;
+        set<int> uniqueIds;
+        int id;
+        while (true) {
+            cin >> id;
+            if (id == -1) break;
+            if (uniqueIds.count(id)) {
+                cout << "Food ID " << id << " already selected, skipping duplicate.\n";
+            } else {
+                uniqueIds.insert(id);
+                idlist.push_back(id);
+            }
+        }
+        Order order(name, cid);
+        bool found = false;
+        for (int chosenId : idlist) {
+            for (auto &f : menu.foodlist) {
+                if (f.fid == chosenId) {
+                    int qty;
+                    cout << "Enter quantity for " << f.fname << ": ";
+                    cin >> qty;
+                    order.addItem(f, qty);
+                    found = true;
+                }
+            }
+        }
+        if (found) {
+            Order::orderlist.push_back(order);
+            order.displayBill();
+            order.saveBillToFile();
+        } else {
+            cout << "No valid food IDs were selected!\n";
+        }
+    }
 };
-
-
-
-
-void Customer::display_customers() {
-    if(customerlist.size()==0){
-        cout<<"No customers visited:("<<endl;
-    }
-    cout << "=== ALL CUSTOMERS DETAILS ===\n";
-    
-    for (int i = 0; i < customerlist.size(); i++) {
-        cout << "S.No: " << i + 1 << endl;
-        cout << "Customer name: " << customerlist[i].name << endl;
-        cout << "Customer phno: " << customerlist[i].phno << endl;
-        cout << endl;
-    }
-}
-
-void Customer::dineIn(int members) {
-    cout << "Dine-in booking for " << members << " members confirmed.\n";
-}
-
-void Customer::takeAway() {
-    cout << "Take Away order placed.\n";
-}
-
-void Customer::homeDelivery() {
-    cout << "Home Delivery order placed.\n";
-}
-
-void customer_details() {
-    Customer c;
-    c.display_customers();
-}
 
 
 int main() {
@@ -207,6 +232,7 @@ int main() {
 
     return 0;
 }
+
 
 
 
