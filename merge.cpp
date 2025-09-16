@@ -167,20 +167,23 @@ public:
     }
 };
 int Customer::nextId = 0;
-vector<Customer> Customer::customerlist;
+vector<Customer*> Customer::customerlist;
+
 class Manager {
 private:
-    Menu &menu;
+    Menu& menu;
+
 public:
-    Manager(Menu &m) : menu(m) {}
+    Manager(Menu& m) : menu(m) {}
+
     void addFood() {
         int fid, fprice;
         string fname, fcat;
         cout << "Enter food id: ";
         cin >> fid;
-        for (auto &f : menu.foodlist) {
+        for (auto& f : menu.foodlist) {
             if (f.fid == fid) {
-                cout << "Food ID already exists! Use a unique ID.\n";
+                cout << "Food ID already exists!\n";
                 return;
             }
         }
@@ -190,54 +193,39 @@ public:
         cin >> fprice;
         cout << "Enter food category (vg/nvg): ";
         cin >> fcat;
-        if (fcat == "vg") {
-            menu.foodlist.push_back(VegFooditem(fid, fname, fprice));
-        } else if (fcat == "nvg") {
-            menu.foodlist.push_back(NonVegFooditem(fid, fname, fprice));
-        } else {
-            cout << "Invalid category!\n";
+
+        if (fcat == "vg") menu.foodlist.push_back(VegFooditem(fid, fname, fprice));
+        else if (fcat == "nvg") menu.foodlist.push_back(NonVegFooditem(fid, fname, fprice));
+        else {
+            cout << "Invalid category! Item not added.\n";
             return;
         }
+
         menu.saveToFile();
         cout << "Food item added successfully!\n";
     }
-    void deleteFood() {
-        int fid;
-        cout << "Enter food id to delete: ";
-        cin >> fid;
-        for (int i = 0; i < menu.foodlist.size(); i++) {
-            if (menu.foodlist[i].fid == fid) {
-                menu.foodlist.erase(menu.foodlist.begin() + i);
-                menu.saveToFile();
-                cout << "Food item deleted successfully!\n";
-                return;
-            }
-        }
-        cout << "Food item not found!\n";
-    }
+
     void displayMenu() {
         string fcat;
         cout << "Enter category to display (vg/nvg/all): ";
         cin >> fcat;
         menu.displayfooditem(fcat);
     }
-    void displayOrders() {
-        if (Order::orderlist.empty()) {
-            cout << "No orders yet.\n";
+
+    void viewCustomerHistory() {
+        ifstream ifs("customers.txt");
+        if (!ifs) {
+            cout << "No customer history available.\n";
             return;
         }
-        int id;
-        cout << "Enter Customer ID to view bill: ";
-        cin >> id;
-        for (auto &o : Order::orderlist) {
-            if (o.cid == id) {
-                o.displayBill();
-                return;
-            }
+        cout << "\n=== Customer Order History ===\n";
+        string line;
+        while (getline(ifs, line)) {
+            cout << line << "\n";
         }
-        cout << "No order found for Customer ID " << id << "!\n";
+        ifs.close();
     }
-
+};
 int main() {
     Menu menu;
     Manager manager(menu);
@@ -273,6 +261,7 @@ int main() {
     cout << "Exiting program...\n";
     return 0;
 }
+
 
 
 
