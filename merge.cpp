@@ -3,6 +3,7 @@
 #include <vector>
 #include <limits>
 #include <set>
+#include <fstream>
 using namespace std;
 
 class Fooditem {
@@ -11,47 +12,70 @@ public:
     string fname;
     int fprice;
     string fcat;
+
     Fooditem() {}
-    Fooditem(int id, string name, int price, string cat)
-        : fid(id), fname(name), fprice(price), fcat(cat) {}
+
+    Fooditem(int id, string name, int price, string cat) {
+        fid = id;
+        fname = name;
+        fprice = price;
+        fcat = cat;
+    }
+
+    friend void showFoodDetails(const Fooditem& f);
 };
+
+void showFoodDetails(const Fooditem& f) {
+    cout << "[Food ID: " << f.fid
+         << ", Name: " << f.fname
+         << ", Price: " << f.fprice
+         << ", Category: " << f.fcat << "]\n";
+}
 
 class VegFooditem : public Fooditem {
 public:
-    VegFooditem(int id, string name, int price)
-        : Fooditem(id, name, price, "vg") {}
+    VegFooditem(int id, string name, int price) {
+        fid = id;
+        fname = name;
+        fprice = price;
+        fcat = "vg";
+    }
 };
 
 class NonVegFooditem : public Fooditem {
 public:
-    NonVegFooditem(int id, string name, int price)
-        : Fooditem(id, name, price, "nvg") {}
+    NonVegFooditem(int id, string name, int price) {
+        fid = id;
+        fname = name;
+        fprice = price;
+        fcat = "nvg";
+    }
 };
 
 class Menu {
 private:
     vector<Fooditem> foodlist;
+
 public:
     friend class Manager;
     friend class Customer;
+
     void displayfooditem(string fcat = "all") {
         if (foodlist.empty()) {
             cout << "No food items available.\n";
             return;
         }
         cout << "\n=== MENU (" << fcat << ") ===\n";
-        cout << "Id  Food name     Food Price     Food category\n";
-        cout << "------------------------------------------\n";
-        for (auto &f : foodlist) {
+        for (auto& f : foodlist) {
             if (fcat == "all" || f.fcat == fcat) {
-                cout << f.fid << "   " << f.fname << "             " << f.fprice << "              " << f.fcat << endl;
-                cout << "------------------------------------------\n";
+                showFoodDetails(f);
             }
         }
     }
+
     void saveToFile() {
         ofstream ofs("fooditems.txt");
-        for (auto &f : foodlist) {
+        for (auto& f : foodlist) {
             ofs << f.fid << " " << f.fname << " " << f.fprice << " " << f.fcat << endl;
         }
         ofs.close();
@@ -267,6 +291,7 @@ int main() {
     cout << "Exiting program...\n";
     return 0;
 }
+
 
 
 
