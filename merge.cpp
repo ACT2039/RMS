@@ -4,8 +4,33 @@
 #include <limits>
 #include <set>
 #include <fstream>
+#include<new>
 using namespace std;
 
+class Table {
+public:
+    int tid;
+    int capacity;
+    int occupied;
+
+    Table(int id) {
+        tid = id;
+        capacity = 2;
+        occupied = 0;
+    }
+
+    int seatsLeft() const {
+        return capacity - occupied;
+    }
+
+    bool reserve(int members) {
+        if (seatsLeft() >= members) {
+            occupied += members;
+            return true;
+        }
+        return false;
+    }
+};
 class Fooditem {
 public:
     int fid;
@@ -136,6 +161,7 @@ public:
     int cid;
     string name;
     string phno;
+    int members;
     static vector<Customer*> customerlist;
 
     Customer() {
@@ -143,7 +169,7 @@ public:
         cout << "---~ WELCOME ~---\n";
     }
 
-    void add_details() {
+    void add_details(TableManager &tmanager) {
         cin.ignore();
         cout << "Enter your name: ";
         getline(cin, name);
@@ -153,48 +179,82 @@ public:
             if (phno.size() == 10) break;
             cout << "Invalid phone number. Try again!\n";
         }
+
+        
+        char viewChoice;
+        cout << "Do you want to view available tables before reservation? (y/n): ";
+        cin >> viewChoice;
+        if (viewChoice == 'y' || viewChoice == 'Y') {
+            tmanager.displayAvailableTables();
+        }
+
+        cout << "Enter total members: ";
+        cin >> members;
+
+        
+        tmanager.assignTable(name, members);
+
         customerlist.push_back(this);
         cout << "Your Customer ID is: " << cid << "\n";
     }
 
-    void placeOrder(Menu& menu) {
-        string fcat;
-        cout << "Enter food category (vg/nvg/all): ";
-        cin >> fcat;
-        menu.displayfooditem(fcat);
+   void placeOrder(Menu& menu) {
+    string fcat;
+    cout << "Enter food category (vg/nvg/all): ";
+    cin >> fcat;
 
-        if (fcat.empty()) return;
+    
+    menu.displayfooditem(fcat);
 
-        vector<int> idlist;
-        set<int> uniqueIds;
-        int id;
-        cout << "Choose food IDs (-1 to stop): ";
-        while (true) {
-            cin >> id;
-            if (id == -1) break;
-            if (!uniqueIds.count(id)) {
-                uniqueIds.insert(id);
-                idlist.push_back(id);
-            }
+
+    bool anyAvailable = false;
+    for (auto &f : menu.foodlist) {
+        if (fcat == "all" || f.fcat == fcat) {
+            anyAvailable = true;
+            break;
         }
-
-        Order* order = new Order(name, cid);
-
-        for (int chosenId : idlist) {
-            for (auto& f : menu.foodlist) {
-                if (f.fid == chosenId) {
-                    int qty;
-                    cout << "Enter quantity for " << f.fname << ": ";
-                    cin >> qty;
-                    order->addItem(f, qty);
-                }
-            }
-        }
-
-        Order::orderlist.push_back(order);
-        order->displayBill();
-        order->saveBillToFile(phno);
     }
+
+    if (!anyAvailable) {
+        cout << "No food items available in this category. Returning to menu.\n";
+        return;  
+    }
+
+    vector<int> idlist;
+    set<int> uniqueIds;
+    int id;
+    cout << "Choose food IDs (-1 to stop): ";
+    while (true) {
+        cin >> id;
+        if (id == -1) break;
+        if (!uniqueIds.count(id)) {
+            uniqueIds.insert(id);
+            idlist.push_back(id);
+        }
+    }
+
+    Order* order = new Order(name, cid);
+    for (int chosenId : idlist) {
+        for (auto& f : menu.foodlist) {
+            if (f.fid == chosenId) {
+                int qty;
+                cout << "Enter quantity for " << f.fname << ": ";
+                cin >> qty;
+                order->addItem(f, qty);
+            }
+        }
+    }
+
+    Order::orderlist.push_back(order);
+    order->displayBill();
+    order->saveBillToFile(phno);
+}
+
+        
+
+        
+
+       
 };
 int Customer::nextId = 0;
 vector<Customer*> Customer::customerlist;
@@ -259,6 +319,8 @@ public:
 int main() {
     Menu menu;
     Manager manager(menu);
+    TableManager tmanager(5); 
+
     int key;
     do {
         cout << "\n1. Manager\n2. Customer\n3. Exit\nEnter choice: ";
@@ -270,18 +332,43 @@ int main() {
                 cout << "1. Add Food Item\n";
                 cout << "2. Display Menu\n";
                 cout << "3. View Customer History\n";
-                cout << "4. Exit\n";
+                cout << "4. View Table Status\n";
+                cout << "5. View Waiting Queue\n";
+                cout << "6. Exit\n";
                 cout << "Enter: ";
                 cin >> choice;
                 if (choice == 1) manager.addFood();
                 else if (choice == 2) manager.displayMenu();
                 else if (choice == 3) manager.viewCustomerHistory();
-            } while (choice != 4);
+                else if (choice == 4) tmanager.displayAvailableTables();
+                else if (choice == 5) tmanager.displayWaitingQueue();
+            } while (choice != 6);
         }
         else if (key == 2) {
-            Customer* c1 = new Customer();
-            c1->add_details();
-            c1->placeOrder(menu);
+            int custChoice;
+            do {
+                cout << "\n--- Customer Menu ---\n";
+                cout << "1. New Customer Reservation\n";
+                cout << "2. View Available Tables\n";
+                cout << "3. Exit to Main Menu\n";
+                cout << "Enter choice: ";
+                cin >> custChoice;
+
+                if (custChoice == 1) {
+                    try {
+                        Customer* c1 = new Customer();
+                        c1->add_details(tmanager);   
+                        c1->placeOrder(menu);
+                        delete c1;
+                    }
+                    catch (bad_alloc& e) {
+                        cerr << "Memory allocation failed: " << e.what() << '\n';
+                    }
+                }
+                else if (custChoice == 2) {
+                    tmanager.displayAvailableTables();
+                }
+            } while (custChoice != 3);
         }
     } while (key != 3);
 
@@ -291,6 +378,7 @@ int main() {
     cout << "Exiting program...\n";
     return 0;
 }
+
 
 
 
