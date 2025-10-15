@@ -31,6 +31,60 @@ public:
         return false;
     }
 };
+
+class TableManager {
+private:
+    vector<Table> tables;
+    vector<string> waitingQueue;
+
+public:
+    TableManager(int totalTables = 5) {
+        for (int i = 1; i <= totalTables; i++) {
+            tables.push_back(Table(i));
+        }
+    }
+
+    void displayAvailableTables() const {
+        cout << "\n=== Available Tables ===\n";
+        for (const auto &t : tables) {
+            cout << "Table " << t.getId() << " | Seats Left: " << t.getSeatsLeft() << "\n";
+        }
+    }
+
+    void assignTable(const string& customerName, int members) {
+        int remainingMembers = members;
+        
+        for (auto &t : tables) {
+            if (remainingMembers == 0) break;
+
+            int seatsAvailable = t.getSeatsLeft();
+            if (seatsAvailable > 0) {
+                int membersToSeat = min(remainingMembers, seatsAvailable);
+                t.reserveSeats(membersToSeat);
+                cout << membersToSeat << " member(s) of " << customerName 
+                     << "'s group assigned to Table " << t.getId() << ".\n";
+                remainingMembers -= membersToSeat;
+            }
+        }
+        
+        if (remainingMembers > 0) {
+            cout << "Sorry, not enough total seats available. Adding " << remainingMembers 
+                 << " remaining member(s) to the waiting queue.\n";
+            waitingQueue.push_back(customerName + " (" + to_string(remainingMembers) + " members)");
+        }
+    }
+
+    void displayWaitingQueue() const {
+        if (waitingQueue.empty()) {
+            cout << "The waiting queue is empty.\n";
+        } else {
+            cout << "\n=== Waiting Queue ===\n";
+            for (const auto &entry : waitingQueue) {
+                cout << "- " << entry << "\n";
+            }
+        }
+    }
+};
 class Fooditem {
 public:
     int fid;
@@ -319,6 +373,7 @@ int main() {
     
     return 0;
 }
+
 
 
 
