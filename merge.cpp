@@ -153,110 +153,62 @@ public:
         ofs.close();
     }
 };
-vector<Order*> Order::orderlist;
-
 class Customer {
-public:
+private:
     static int nextId;
-    int cid;
+    int customerId;
     string name;
-    string phno;
+    string phone;
     int members;
-    static vector<Customer*> customerlist;
 
+public:
     Customer() {
-        cid = ++nextId;
-        cout << "---~ WELCOME ~---\n";
+        customerId = nextId++;
+        cout << "\n--- New Customer Entry ---\n";
+        cout << "Your Customer ID is: " << customerId << endl;
     }
 
-    void add_details(TableManager &tmanager) {
-        cin.ignore();
+    void getDetails(TableManager &tManager) {
         cout << "Enter your name: ";
         getline(cin, name);
-        while (true) {
-            cout << "Enter your phno.: ";
-            cin >> phno;
-            if (phno.size() == 10) break;
-            cout << "Invalid phone number. Try again!\n";
-        }
-
-        
-        char viewChoice;
-        cout << "Do you want to view available tables before reservation? (y/n): ";
-        cin >> viewChoice;
-        if (viewChoice == 'y' || viewChoice == 'Y') {
-            tmanager.displayAvailableTables();
-        }
-
-        cout << "Enter total members: ";
+        cout << "Enter your 10-digit phone number: ";
+        getline(cin, phone);
+        cout << "Enter total number of members: ";
         cin >> members;
+        cin.ignore();
 
+        tManager.assignTable(name, members);
+    }
+
+    void placeOrder(Menu& menu) {
+        menu.displayMenu();
+        Order order(name);
         
-        tmanager.assignTable(name, members);
+        while (true) {
+            cout << "Enter Food ID to order (-1 to finish): ";
+            int id;
+            cin >> id;
+            if (id == -1) break;
 
-        customerlist.push_back(this);
-        cout << "Your Customer ID is: " << cid << "\n";
-    }
-
-   void placeOrder(Menu& menu) {
-    string fcat;
-    cout << "Enter food category (vg/nvg/all): ";
-    cin >> fcat;
-
-    
-    menu.displayfooditem(fcat);
-
-
-    bool anyAvailable = false;
-    for (auto &f : menu.foodlist) {
-        if (fcat == "all" || f.fcat == fcat) {
-            anyAvailable = true;
-            break;
-        }
-    }
-
-    if (!anyAvailable) {
-        cout << "No food items available in this category. Returning to menu.\n";
-        return;  
-    }
-
-    vector<int> idlist;
-    set<int> uniqueIds;
-    int id;
-    cout << "Choose food IDs (-1 to stop): ";
-    while (true) {
-        cin >> id;
-        if (id == -1) break;
-        if (!uniqueIds.count(id)) {
-            uniqueIds.insert(id);
-            idlist.push_back(id);
-        }
-    }
-
-    Order* order = new Order(name, cid);
-    for (int chosenId : idlist) {
-        for (auto& f : menu.foodlist) {
-            if (f.fid == chosenId) {
+            Fooditem* item = menu.findFoodById(id);
+            if (item) {
+                cout << "Enter quantity for " << item->getName() << ": ";
                 int qty;
-                cout << "Enter quantity for " << f.fname << ": ";
                 cin >> qty;
-                order->addItem(f, qty);
+                if (qty > 0) {
+                    order.addItem(*item, qty);
+                }
+            } else {
+                cout << "Invalid Food ID. Please try again.\n";
             }
         }
+        cin.ignore();
+        order.printBill();
+        order.saveBillToFile(customerId, phone);
     }
-
-    Order::orderlist.push_back(order);
-    order->displayBill();
-    order->saveBillToFile(phno);
-}
-
-        
-
-        
-
-       
 };
-int Customer::nextId = 0;
+
+int Customer::nextId = 101;
 vector<Customer*> Customer::customerlist;
 
 class Manager {
@@ -318,66 +270,56 @@ public:
 };
 int main() {
     Menu menu;
-    Manager manager(menu);
-    TableManager tmanager(5); 
+    TableManager tableManager;
+    Manager manager(menu, tableManager);
 
-    int key;
+    menu.loadFromFile();
+
+    int choice;
     do {
-        cout << "\n1. Manager\n2. Customer\n3. Exit\nEnter choice: ";
-        cin >> key;
-        if (key == 1) {
-            int choice;
-            do {
-                cout << "\n--- Manager Menu ---\n";
-                cout << "1. Add Food Item\n";
-                cout << "2. Display Menu\n";
-                cout << "3. View Customer History\n";
-                cout << "4. View Table Status\n";
-                cout << "5. View Waiting Queue\n";
-                cout << "6. Exit\n";
-                cout << "Enter: ";
-                cin >> choice;
-                if (choice == 1) manager.addFood();
-                else if (choice == 2) manager.displayMenu();
-                else if (choice == 3) manager.viewCustomerHistory();
-                else if (choice == 4) tmanager.displayAvailableTables();
-                else if (choice == 5) tmanager.displayWaitingQueue();
-            } while (choice != 6);
-        }
-        else if (key == 2) {
-            int custChoice;
-            do {
-                cout << "\n--- Customer Menu ---\n";
-                cout << "1. New Customer Reservation\n";
-                cout << "2. View Available Tables\n";
-                cout << "3. Exit to Main Menu\n";
-                cout << "Enter choice: ";
-                cin >> custChoice;
+        cout << "\n===== RESTAURANT MANAGEMENT SYSTEM =====\n"
+             << "1. Manager Section\n"
+             << "2. Customer Section\n"
+             << "3. Exit\n"
+             << "Enter choice: ";
+        cin >> choice;
+        cin.ignore();
 
-                if (custChoice == 1) {
-                    try {
-                        Customer* c1 = new Customer();
-                        c1->add_details(tmanager);   
-                        c1->placeOrder(menu);
-                        delete c1;
-                    }
-                    catch (bad_alloc& e) {
-                        cerr << "Memory allocation failed: " << e.what() << '\n';
-                    }
-                }
-                else if (custChoice == 2) {
-                    tmanager.displayAvailableTables();
-                }
-            } while (custChoice != 3);
-        }
-    } while (key != 3);
+        if (choice == 1) {
+            int managerChoice;
+            do {
+                cout << "\n--- Manager Menu ---\n"
+                     << "1. Add Food Item\n"
+                     << "2. View Menu\n"
+                     << "3. View Table Status\n"
+                     << "4. View Waiting List\n"
+                     << "5. View Customer History\n"
+                     << "6. Return to Main Menu\n"
+                     << "Enter choice: ";
+                cin >> managerChoice;
+                cin.ignore();
 
-    for (auto c : Customer::customerlist) delete c;
-    for (auto o : Order::orderlist) delete o;
+                if (managerChoice == 1) manager.addFoodItem();
+                else if (managerChoice == 2) manager.viewMenu();
+                else if (managerChoice == 3) manager.viewTables();
+                else if (managerChoice == 4) manager.viewWaitingList();
+                else if (managerChoice == 5) manager.viewCustomerHistory();
+
+            } while (managerChoice != 6);
+
+        } else if (choice == 2) {
+            Customer customer;
+            customer.getDetails(tableManager);
+            customer.placeOrder(menu);
+            cout << "Thank you! Please visit again.\n";
+        }
+    } while (choice != 3);
 
     cout << "Exiting program...\n";
+    
     return 0;
 }
+
 
 
 
