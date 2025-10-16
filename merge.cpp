@@ -162,49 +162,47 @@ public:
 };
 
 class Order {
-public:
-    string cname;
-    int cid;
+private:
+    string customerName;
     vector<pair<Fooditem, int>> items;
-    static vector<Order*> orderlist;
 
-    Order(string cn, int id) {
-        cname = cn;
-        cid = id;
-    }
+public:
+    Order(string cname) : customerName(cname) {}
 
-    void addItem(Fooditem f, int qty) {
-        items.push_back({f, qty});
+    void addItem(const Fooditem& item, int quantity) {
+        items.push_back({item, quantity});
     }
 
     int getTotal() const {
         int total = 0;
-        for (auto& p : items) total += p.first.fprice * p.second;
+        for (const auto& p : items) {
+            total += p.first.getPrice() * p.second;
+        }
         return total;
     }
 
-    void displayBill() const {
-        cout << "\n==== BILL ====\n";
-        cout << "Customer ID: " << cid << "\n";
-        cout << "Customer: " << cname << "\n";
-        for (auto& p : items) {
-            cout << " • " << p.first.fname << " x " << p.second
-                 << " = " << p.first.fprice * p.second << "\n";
+    void printBill() const {
+        cout << "\n------ BILL for " << customerName << " ------\n";
+        for (const auto& p : items) {
+            int itemTotal = p.first.getPrice() * p.second;
+            cout << " - " << p.first.getName() << " x " << p.second << " = " << itemTotal << "\n";
         }
-        cout << "Total: " << getTotal() << "\n";
+        cout << "-------------------------\n";
+        cout << "Total Amount: " << getTotal() << "\n";
+        cout << "-------------------------\n";
     }
 
-    void saveBillToFile(const string& phno) const {
-        ofstream ofs("customers.txt", ios::app);
-        ofs << "Customer ID: " << cid << " | Name: " << cname << " | Phone: " << phno << "\n";
-        ofs << "Orders:\n";
-        for (auto& p : items) {
-            ofs << "  " << p.first.fname << " x " << p.second
-                << " = " << p.first.fprice * p.second << "\n";
+    void saveBillToFile(int custId, const string& custPhone) const {
+        ofstream file("customer_history.txt", ios::app);
+        if (file.is_open()) {
+            file << "Customer ID: " << custId << " | Name: " << customerName << " | Phone: " << custPhone << "\n";
+            for (const auto& p : items) {
+                file << "  - Item: " << p.first.getName() << " | Qty: " << p.second 
+                     << " | Price: " << p.first.getPrice() << "\n";
+            }
+            file << "Total Bill: " << getTotal() << "\n";
+            file << "-------------------------------------------\n";
         }
-        ofs << "Total: " << getTotal() << "\n";
-        ofs << "---------------------------\n";
-        ofs.close();
     }
 };
 class Customer {
@@ -388,6 +386,7 @@ int main() {
     
     return 0;
 }
+
 
 
 
