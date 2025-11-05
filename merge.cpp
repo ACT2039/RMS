@@ -19,7 +19,7 @@ public:
         occupied = 0;
     }
 
-    int seatsLeft() const {
+    int seatsLeft() const { 
         return capacity - occupied;
     }
 
