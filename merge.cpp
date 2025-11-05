@@ -219,46 +219,50 @@ public:
     }
 
     void getDetails(TableManager &tManager) {
-        cout << "Enter your name: ";
-        getline(cin, name);
-        cout << "Enter your 10-digit phone number: ";
-        getline(cin, phone);
-        cout << "Enter total number of members: ";
-        cin >> members;
-        cin.ignore();
-
-        tManager.assignTable(name, members);
+        try {
+            cout << "Enter your name: ";
+            getline(cin, name);
+            cout << "Enter your 10-digit phone number: ";
+            getline(cin, phone);
+            cout << "Enter total number of members: ";
+            cin >> members;
+            cin.ignore();
+            if (phone.length() != 10) throw "Invalid phone number.";
+            if (members <= 0) throw "Invalid number of members.";
+            tManager.assignTable(name, members);
+        } catch (const char* msg) {
+            cerr << "Error: " << msg << endl;
+        }
     }
 
     void placeOrder(Menu& menu) {
-        menu.displayMenu();
-        Order order(name);
-        
-        while (true) {
-            cout << "Enter Food ID to order (-1 to finish): ";
-            int id;
-            cin >> id;
-            if (id == -1) break;
-
-            Fooditem* item = menu.findFoodById(id);
-            if (item) {
+        try {
+            menu.displayMenu();
+            Order order(name);
+            while (true) {
+                cout << "Enter Food ID to order (-1 to finish): ";
+                int id;
+                cin >> id;
+                if (id == -1) break;
+                Fooditem* item = menu.findFoodById(id);
+                if (!item) throw "Invalid Food ID entered.";
                 cout << "Enter quantity for " << item->getName() << ": ";
                 int qty;
                 cin >> qty;
-                if (qty > 0) {
-                    order.addItem(*item, qty);
-                }
-            } else {
-                cout << "Invalid Food ID. Please try again.\n";
+                if (qty <= 0) throw "Quantity must be positive.";
+                order.addItem(*item, qty);
             }
+            cin.ignore();
+            order.printBill();
+            order.saveBillToFile(customerId, phone);
+        } catch (const char* msg) {
+            cerr << "Error: " << msg << endl;
         }
-        cin.ignore();
-        order.printBill();
-        order.saveBillToFile(customerId, phone);
     }
 };
 
 int Customer::nextId = 101;
+
 vector<Customer*> Customer::customerlist;
 
 class Manager {
@@ -324,9 +328,7 @@ int main() {
     Menu menu;
     TableManager tableManager;
     Manager manager(menu, tableManager);
-
     menu.loadFromFile();
-
     int choice;
     do {
         cout << "\n===== RESTAURANT MANAGEMENT SYSTEM =====\n"
@@ -336,8 +338,8 @@ int main() {
              << "Enter choice: ";
         cin >> choice;
         cin.ignore();
-
         if (choice == 1) {
+            authenticateManager();
             int managerChoice;
             do {
                 cout << "\n--- Manager Menu ---\n"
@@ -350,15 +352,12 @@ int main() {
                      << "Enter choice: ";
                 cin >> managerChoice;
                 cin.ignore();
-
                 if (managerChoice == 1) manager.addFoodItem();
                 else if (managerChoice == 2) manager.viewMenu();
                 else if (managerChoice == 3) manager.viewTables();
                 else if (managerChoice == 4) manager.viewWaitingList();
                 else if (managerChoice == 5) manager.viewCustomerHistory();
-
             } while (managerChoice != 6);
-
         } else if (choice == 2) {
             Customer customer;
             customer.getDetails(tableManager);
@@ -366,11 +365,10 @@ int main() {
             cout << "Thank you! Please visit again.\n";
         }
     } while (choice != 3);
-
     cout << "Exiting program...\n";
-    
     return 0;
 }
+
 
 
 
