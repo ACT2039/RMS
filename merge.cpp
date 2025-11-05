@@ -53,22 +53,19 @@ public:
 
     void assignTable(const string& customerName, int members) {
         int remainingMembers = members;
-        
         for (auto &t : tables) {
             if (remainingMembers == 0) break;
-
             int seatsAvailable = t.getSeatsLeft();
             if (seatsAvailable > 0) {
                 int membersToSeat = min(remainingMembers, seatsAvailable);
                 t.reserveSeats(membersToSeat);
-                cout << membersToSeat << " member(s) of " << customerName 
+                cout << membersToSeat << " member(s) of " << customerName
                      << "'s group assigned to Table " << t.getId() << ".\n";
                 remainingMembers -= membersToSeat;
             }
         }
-        
         if (remainingMembers > 0) {
-            cout << "Sorry, not enough total seats available. Adding " << remainingMembers 
+            cout << "Sorry, not enough total seats available. Adding " << remainingMembers
                  << " remaining member(s) to the waiting queue.\n";
             waitingQueue.push_back(customerName + " (" + to_string(remainingMembers) + " members)");
         }
@@ -85,6 +82,7 @@ public:
         }
     }
 };
+
 class Fooditem {
 public:
     int fid;
@@ -272,67 +270,54 @@ public:
     Manager(Menu& m, TableManager& tm) : menu(m), tableManager(tm) {}
 
     void addFoodItem() {
-        cout << "Enter food id: ";
-        int id;
-        cin >> id;
-        if (menu.findFoodById(id) != nullptr) {
-            cout << "Food ID already exists!\n";
+        try {
+            cout << "Enter food id: ";
+            int id;
+            cin >> id;
+            if (menu.findFoodById(id) != nullptr) throw "Food ID already exists.";
+            cout << "Enter food name: ";
+            string name;
             cin.ignore();
-            return;
+            getline(cin, name);
+            cout << "Enter food price: ";
+            int price;
+            cin >> price;
+            cout << "Enter category (1 for Veg, 2 for Non-Veg): ";
+            int catChoice;
+            cin >> catChoice;
+            cin.ignore();
+            if (price <= 0) throw "Invalid price entered.";
+            if (catChoice == 1) menu.addFoodItem(new VegFooditem(id, name, price));
+            else if (catChoice == 2) menu.addFoodItem(new NonVegFooditem(id, name, price));
+            else throw "Invalid category choice.";
+            menu.saveToFile();
+            cout << "Food item added successfully!\n";
+        } catch (const char* msg) {
+            cerr << "Error: " << msg << endl;
         }
-        
-        cout << "Enter food name: ";
-        string name;
-        cin.ignore();
-        getline(cin, name);
-
-        cout << "Enter food price: ";
-        int price;
-        cin >> price;
-
-        cout << "Enter category (1 for Veg, 2 for Non-Veg): ";
-        int catChoice;
-        cin >> catChoice;
-        cin.ignore();
-
-        if (catChoice == 1) {
-            menu.addFoodItem(new VegFooditem(id, name, price));
-        } else if (catChoice == 2) {
-            menu.addFoodItem(new NonVegFooditem(id, name, price));
-        } else {
-            cout << "Invalid category!\n";
-            return;
-        }
-
-        menu.saveToFile();
-        cout << "Food item added successfully!\n";
     }
     
     void viewCustomerHistory() {
-        ifstream file("customer_history.txt");
-        if (!file.is_open()) {
-            cout << "No customer history found.\n";
-            return;
+        try {
+            ifstream file("customer_history.txt");
+            if (!file) throw "Customer history file not found.";
+            cout << "\n--- Customer Order History ---\n";
+            string line;
+            while (getline(file, line)) {
+                cout << line << endl;
+            }
+            cout << "------------------------------\n";
+        } catch (const char* msg) {
+            cerr << "Error: " << msg << endl;
         }
-        cout << "\n--- Customer Order History ---\n";
-        string line;
-        while (getline(file, line)) {
-            cout << line << endl;
-        }
-        cout << "------------------------------\n";
     }
 
-    void viewMenu() {
-        menu.displayMenu();
-    }
-    
-    void viewTables() {
-        tableManager.displayAvailableTables();
-    }
-    
+    void viewMenu() { 
+        menu.displayMenu(); }
+    void viewTables() { 
+        tableManager.displayAvailableTables(); }
     void viewWaitingList() {
-        tableManager.displayWaitingQueue();
-    }
+        tableManager.displayWaitingQueue(); }
 };
 
 int main() {
@@ -386,6 +371,7 @@ int main() {
     
     return 0;
 }
+
 
 
 
