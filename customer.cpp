@@ -36,7 +36,7 @@ void Customer::homeDelivery() {
     cout << "Home Delivery order placed.\n";
 }
 
-void customer_details() {
+void customer_details() { 
     Customer c;
     c.display_customers();
 }
