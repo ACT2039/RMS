@@ -24,7 +24,7 @@ public:
 
 class Menu {
 public:
-    void addfooditem(int fid, string fname, int fprice, string fcat);
+    void addfooditem(int fid, string fname, int fprice,  string fcat);
     void displayfooditem(int fid, string fname, int fprice, string fcat);
     void deletefooditem(int fid);
     void loadFoodFromFile();
