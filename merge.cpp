@@ -164,6 +164,22 @@ private:
     string customerName;
     vector<pair<Fooditem, int>> items;
 
+
+    string formatPrice(int price) const {
+        
+        return to_string(price) + string(".00");
+    }
+
+
+    string padRight(const string &s, size_t width) const {
+        if (s.length() >= width) return s.substr(0, width);
+        return s + string(width - s.length(), ' ');
+    }
+    string padLeft(const string &s, size_t width) const {
+        if (s.length() >= width) return s.substr(0, width);
+        return string(width - s.length(), ' ') + s;
+    }
+
 public:
     Order(string cname) : customerName(cname) {}
 
@@ -180,26 +196,92 @@ public:
     }
 
     void printBill() const {
-        cout << "\n------ BILL for " << customerName << " ------\n";
-        for (const auto& p : items) {
-            int itemTotal = p.first.getPrice() * p.second;
-            cout << " - " << p.first.getName() << " x " << p.second << " = " << itemTotal << "\n";
+        if (items.empty()) {
+            cout << "\nNo items ordered yet!\n";
+            return;
         }
-        cout << "-------------------------\n";
-        cout << "Total Amount: " << getTotal() << "\n";
-        cout << "-------------------------\n";
+
+    
+        size_t nameWidth = 20; 
+        for (const auto& p : items) {
+            size_t needed = p.first.getName().length() + 2;
+            if (needed > nameWidth) nameWidth = needed;
+        }
+        if (nameWidth > 35) nameWidth = 35; 
+
+        const size_t qtyWidth = 6;
+        const size_t priceWidth = 10;
+        const size_t lineTotalWidth = 12;
+        const size_t gap = 2; 
+
+        size_t tableWidth = nameWidth + gap + qtyWidth + gap + priceWidth + gap + lineTotalWidth;
+
+        
+        cout << "\n" << string(tableWidth, '=') << "\n";
+        cout << padRight("BILL SUMMARY", tableWidth) << "\n";
+        cout << string(tableWidth, '=') << "\n";
+        cout << "Customer Name: " << customerName << "\n";
+        cout << string(tableWidth, '-') << "\n";
+
+        string h_item = padRight("Item", nameWidth);
+        string h_qty  = padRight("Qty", qtyWidth);
+        string h_price = padRight("Price", priceWidth);
+        string h_total = padRight("Total", lineTotalWidth);
+
+        cout << h_item << string(gap, ' ')
+             << h_qty  << string(gap, ' ')
+             << h_price << string(gap, ' ')
+             << h_total << "\n";
+
+        cout << string(tableWidth, '-') << "\n";
+
+        
+        for (const auto& p : items) {
+            const string &iname = p.first.getName();
+            string s_name = padRight(iname, nameWidth);
+
+            string s_qty = padRight(to_string(p.second), qtyWidth);
+
+            string s_price = padRight(formatPrice(p.first.getPrice()), priceWidth);
+
+            int lineTotal = p.first.getPrice() * p.second;
+            string s_lineTotal = padLeft(formatPrice(lineTotal), lineTotalWidth);
+
+            cout << s_name << string(gap, ' ')
+                 << s_qty  << string(gap, ' ')
+                 << s_price << string(gap, ' ')
+                 << s_lineTotal << "\n";
+        }
+
+        cout << string(tableWidth, '-') << "\n";
+
+        
+        string totalLabel = "Total Amount:";
+        string totalValue = formatPrice(getTotal());
+        string summaryLine = padLeft(totalLabel, tableWidth - totalValue.length()) + totalValue;
+        cout << summaryLine << "\n";
+
+        cout << string(tableWidth, '=') << "\n";
+        cout << padRight("Thank you for dining with us!", tableWidth) << "\n";
+        cout << string(tableWidth, '=') << "\n\n";
     }
 
     void saveBillToFile(int custId, const string& custPhone) const {
-        ofstream file("customer_history.txt", ios::app);
-        if (file.is_open()) {
-            file << "Customer ID: " << custId << " | Name: " << customerName << " | Phone: " << custPhone << "\n";
+        try {
+            ofstream file("customer_history.txt", ios::app);
+            if (!file) throw "Unable to open customer history file.";
+            file << "Customer ID: " << custId
+                 << " | Name: " << customerName
+                 << " | Phone: " << custPhone << "\n";
             for (const auto& p : items) {
-                file << "  - Item: " << p.first.getName() << " | Qty: " << p.second 
+                file << "  - Item: " << p.first.getName()
+                     << " | Qty: " << p.second
                      << " | Price: " << p.first.getPrice() << "\n";
             }
             file << "Total Bill: " << getTotal() << "\n";
-            file << "-------------------------------------------\n";
+            file << string(40, '-') << "\n";
+        } catch (const char* msg) {
+            cerr << "Error: " << msg << endl;
         }
     }
 };
@@ -368,24 +450,3 @@ int main() {
     cout << "Exiting program...\n";
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
